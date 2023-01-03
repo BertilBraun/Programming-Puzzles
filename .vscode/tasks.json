@@ -1,0 +1,27 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "init",
+            "type": "shell",
+            "command": "cargo scaffold ${input:day} && cargo download ${input:day}",
+            "problemMatcher": []
+        },
+        {
+            "label": "solve",
+            "type": "shell",
+            "command": "cargo solve ${input:day}",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "day",
+            "description": "Day:",
+            "default": "1",
+            "type": "promptString"
+        },
+    ]
+}
