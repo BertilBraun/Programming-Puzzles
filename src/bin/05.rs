@@ -24,7 +24,7 @@ fn parse_stacks(max_height: usize, size: usize, lines: &Vec<&str>, stacks: &mut 
 fn format_result(size: usize, stacks: Vec<Vec<char>>) -> String {
     let mut result: String = String::new();
     for i in 0..size {
-        if stacks[i].len() == 0 {
+        if stacks[i].is_empty() {
             continue;
         }
         result += stacks[i][stacks[i].len() - 1].to_string().as_str();
