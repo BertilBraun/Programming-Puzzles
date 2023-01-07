@@ -6,14 +6,20 @@
         {
             "label": "init",
             "type": "shell",
-            "command": "cargo scaffold ${input:day} && cargo download ${input:day}",
-            "problemMatcher": []
+            "command": "cargo download ${input:day} && cargo scaffold ${input:day}",
+            "problemMatcher": [],
+            "runOptions": {
+                "reevaluateOnRerun": false
+            }
         },
         {
             "label": "solve",
             "type": "shell",
             "command": "cargo solve ${input:day}",
-            "problemMatcher": []
+            "problemMatcher": [],
+            "runOptions": {
+                "reevaluateOnRerun": false
+            }
         }
     ],
     "inputs": [
@@ -21,7 +27,34 @@
             "id": "day",
             "description": "Day:",
             "default": "1",
-            "type": "promptString"
+            "type": "pickString",
+            "options": [
+                "01",
+                "02",
+                "03",
+                "04",
+                "05",
+                "06",
+                "07",
+                "08",
+                "09",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "15",
+                "16",
+                "17",
+                "18",
+                "19",
+                "20",
+                "21",
+                "22",
+                "23",
+                "24",
+                "25",
+            ]
         },
     ]
 }
