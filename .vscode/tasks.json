@@ -15,7 +15,7 @@
         {
             "label": "solve",
             "type": "shell",
-            "command": "cargo solve ${input:day}",
+            "command": "set RUST_BACKTRACE=1 && cargo solve ${input:day}",
             "problemMatcher": [],
             "runOptions": {
                 "reevaluateOnRerun": false
