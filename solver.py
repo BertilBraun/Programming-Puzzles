@@ -93,7 +93,7 @@ def is_lookup_true(buildings: Iterable[int], clue: int) -> bool:
     return num_visible == clue
 
 
-def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
+def precalculate_lookup_table(grid_size: int) -> dict[int, int]:
     def gen(place_n: int, num: int, buildings: list[int], num_zeros: int):
         if place_n == 0:
             for clue in range(1, grid_size + 1):
@@ -121,7 +121,7 @@ def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
                     gen(place_n - 1, num_place + 1, buildings, num_zeros)
                     buildings[p] = 0
 
-    lookup_table: dict[int, bool] = {}
+    lookup_table: dict[int, int] = {}
 
     for n in range(grid_size, 0, -1):
         gen(n, 1, [0] * grid_size, grid_size - n)
@@ -130,12 +130,6 @@ def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
 
 
 def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]]:
-    result_grid = None
-    all_nums = set(range(1, grid_size + 1))
-
-    print("CLUES: ")
-    print(clues)
-
     def get_col(grid: list[list[int]], col: int) -> list[int]:
         return [grid[row][col] for row in range(grid_size)]
 
@@ -187,26 +181,23 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
                     return True
         return False
 
-    def solve_puzzle_helper(grid: list[list[int]], rows: list[Set[int]], cols: list[Set[int]], lookup_index: int, row: int, col: int) -> bool:
-        # DO NOT MODIFY rows, cols
-        nonlocal result_grid
-
+    def solve_puzzle_helper(
+        grid: list[list[int]], rows: list[Set[int]], cols: list[Set[int]], buildings_placed: int
+    ) -> bool:
         # Recursive function to solve the puzzle using backtracking.
-        # print_board(grid, clues)
-        if lookup_index == last_lookup_index:
+        if buildings_placed == total_number_of_cells:
+            nonlocal result_grid
             result_grid = [list(row) for row in grid]
             return True
-
-        if grid[row][col] != 0:
-            return solve_puzzle_helper(grid, rows, cols, lookup_index + 1, row, col)
 
         # copy grid to avoid modifying the original
         grid = [list(row) for row in grid]
         rows = [set(row) for row in rows]
         cols = [set(col) for col in cols]
 
-        max_constrained_cell = None
-        max_constrains_on_cell = -999999999999999
+        changed = False
+        max_constrained_cell = (-1, -1)
+        max_constrains_on_cell = -999999999
 
         # Fills every cell that is determined by uniqueness constraints on row + col
         for r in range(grid_size):
@@ -214,37 +205,42 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
                 if grid[r][c] != 0:
                     continue
 
-                intersections = all_nums - (rows[r] | cols[c])
-                l_intersections = len(intersections)
-                if l_intersections == 1:
+                intersections = ALL_NUMS - (rows[r] | cols[c])
+                unique_candidates_count = len(intersections)
+
+                if unique_candidates_count == 1:
                     num = intersections.pop()
                     grid[r][c] = num
                     rows[r].add(num)
                     cols[c].add(num)
-                    lookup_index += 1
+                    changed = True
+                    buildings_placed += 1
                     if does_break(grid, r, c):
                         return False
                 else:
-                    constraints = -l_intersections
-                    for clue in grid_clues[r][c]:
-                        constraints += clue
+                    constraints = sum(grid_clues[r][c]) - unique_candidates_count
                     if constraints > max_constrains_on_cell:
                         max_constrains_on_cell = constraints
                         max_constrained_cell = (r, c)
 
-        if grid[row][col] != 0:
-            return solve_puzzle_helper(grid, rows, cols, lookup_index, max_constrained_cell[0], max_constrained_cell[1])
+        if changed:
+            return solve_puzzle_helper(grid, rows, cols, buildings_placed)
+
+        if max_constrained_cell == (-1, -1):
+            return not is_grid_broken(grid)  # TODO should always be not broken
 
         row, col = max_constrained_cell
-        for height in all_nums - (rows[row] | cols[col]):
+
+        for height in ALL_NUMS - (rows[row] | cols[col]):
             grid[row][col] = height
             if not does_break(grid, row, col):
                 rows[row].add(height)
                 cols[col].add(height)
-                if solve_puzzle_helper(grid, rows, cols, lookup_index + 1, max_constrained_cell[0], max_constrained_cell[1]):
+                if solve_puzzle_helper(grid, rows, cols, buildings_placed + 1):
                     return True
                 rows[row].remove(height)
                 cols[col].remove(height)
+
         return False
 
     # ========================================================
@@ -252,6 +248,9 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
     # ========================================================
     # for each cell, keep track of the 4 clues that are visible from that cell
     # up, right, down, left
+    result_grid: list[list[int]] = []
+    ALL_NUMS = set(range(1, grid_size + 1))
+
     DIRS = ('up', 'down', 'left', 'right')
     grid_clues = [
         [
@@ -272,7 +271,7 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
         for col in range(grid_size)
     ]
     lookup_order.sort(reverse=True)
-    last_lookup_index = len(lookup_order)
+    total_number_of_cells = len(lookup_order)
 
     # placing all highest buildings before first backtracking iteration
     for indices in permutations(range(grid_size)):
@@ -281,23 +280,13 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
         for i, index in enumerate(indices):
             grid[i][index] = grid_size
 
-
-        # for r in range(grid_size):
-        #     for c in range(grid_size):
-        #         grid[r][c] = expected[r][c] if expected[r][c] == 7 else 0  # TODO remove
-
         if is_grid_broken(grid):
             continue
 
-        set7s = [set([7]) for _ in range(grid_size)]
+        set7s = [{7} for _ in range(grid_size)]
 
-        # print('Trying:', indices)
-        # print_board(grid, clues)
-        _, sr, sc = lookup_order[0]
-        if solve_puzzle_helper(grid, set7s, set7s, 0, sr, sc):
+        if solve_puzzle_helper(grid, set7s, set7s, 0):
             return result_grid
-
-        # raise Exception('No solution found')  # TODO remove
 
     assert False, 'No solution found'
 
