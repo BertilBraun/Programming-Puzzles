@@ -184,9 +184,9 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
     def solve_puzzle_helper(
         grid: list[list[int]], rows: list[Set[int]], cols: list[Set[int]], buildings_placed: int
     ) -> bool:
+        nonlocal result_grid
         # Recursive function to solve the puzzle using backtracking.
         if buildings_placed == total_number_of_cells:
-            nonlocal result_grid
             result_grid = [list(row) for row in grid]
             return True
 
@@ -218,7 +218,7 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
                     if does_break(grid, r, c):
                         return False
                 else:
-                    constraints = sum(grid_clues[r][c]) - unique_candidates_count
+                    constraints = sum(grid_clues[r][c]) - 2 * unique_candidates_count
                     if constraints > max_constrains_on_cell:
                         max_constrains_on_cell = constraints
                         max_constrained_cell = (r, c)
@@ -227,6 +227,7 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
             return solve_puzzle_helper(grid, rows, cols, buildings_placed)
 
         if max_constrained_cell == (-1, -1):
+            result_grid = [list(row) for row in grid]
             return not is_grid_broken(grid)  # TODO should always be not broken
 
         row, col = max_constrained_cell
