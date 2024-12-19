@@ -131,6 +131,8 @@ def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
 
 
 def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]]:
+    result_grid = None
+
     def get_col(grid: list[list[int]], col: int) -> list[int]:
         return [grid[row][col] for row in range(grid_size)]
 
@@ -183,9 +185,12 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
         return False
 
     def solve_puzzle_helper(grid: list[list[int]], lookup_index: int) -> bool:
+        nonlocal result_grid
+
         # Recursive function to solve the puzzle using backtracking.
         # print_board(grid, clues)
         if lookup_index == len(lookup_order):
+            result_grid = [list(row) for row in grid]
             return True
 
         # get most constrained cell instead of continuning the lookup order
@@ -194,6 +199,9 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
 
         if grid[row][col] != 0:
             return solve_puzzle_helper(grid, lookup_index + 1)
+
+        # copy grid to avoid modifying the original
+        grid = [list(row) for row in grid]
 
         # set fixed heights if they can be directly inferred
         rows: list[Set[int]] = [set() for _ in range(grid_size)]
@@ -215,49 +223,40 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
                 num = (all_nums - row_nums).pop()
                 for c in range(grid_size):
                     if grid[r][c] == 0:
-                        print('Setting Row:', r, c, num)
                         grid[r][c] = num
                         row_nums.add(num)
                         if does_break(grid, r, c):
                             # This was the last possible number to place in this row
                             # But it broke the grid, so we need to backtrack
-                            grid[r][c] = 0
                             return False
                         break
 
         for c, col_nums in enumerate(cols):
             if len(col_nums) == grid_size - 1:
                 num = (all_nums - col_nums).pop()
-                print_board(grid, clues)
-                print('Setting Col:', c, num)
                 for r in range(grid_size):
                     if grid[r][c] == 0:
-                        print('Setting Col:', r, c, num)
                         grid[r][c] = num
                         col_nums.add(num)
                         if does_break(grid, r, c):
                             # This was the last possible number to place in this column
                             # But it broke the grid, so we need to backtrack
-                            grid[r][c] = 0
                             return False
                         break
 
-        # for r in range(grid_size):
-        #     for c in range(grid_size):
-        #         if grid[r][c] != 0:
-        #             continue
-        #
-        #         intersections = all_nums - (rows[r] | cols[c])
-        #         if len(intersections) == 1:
-        #             print('Setting Intersection:', r, c, intersections)
-        #             print_board(grid, clues)
-        #             num = intersections.pop()
-        #             grid[r][c] = num
-        #             rows[r].add(num)
-        #             cols[c].add(num)
-        #             if does_break(grid, r, c):
-        #                 grid[r][c] = 0
-        #                 return False
+        for r in range(grid_size):
+            for c in range(grid_size):
+                if grid[r][c] != 0:
+                    continue
+
+                intersections = all_nums - (rows[r] | cols[c])
+                if len(intersections) == 1:
+                    num = intersections.pop()
+                    grid[r][c] = num
+                    rows[r].add(num)
+                    cols[c].add(num)
+                    if does_break(grid, r, c):
+                        return False
 
         assert not is_grid_broken(grid)  # TODO remove
         if grid[row][col] != 0:
@@ -274,6 +273,9 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
         grid[row][col] = 0
         return False
 
+    # ========================================================
+    #                    SOLVE PUZZLE FUNCTION
+    # ========================================================
     # for each cell, keep track of the 4 clues that are visible from that cell
     # up, right, down, left
     DIRS = ('up', 'down', 'left', 'right')
@@ -297,24 +299,25 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
     ]
     lookup_order.sort(reverse=True)
 
+    # placing all highest buildings before first backtracking iteration
     for indices in permutations(range(grid_size)):
         grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
         for i, index in enumerate(indices):
             grid[i][index] = grid_size
 
-        for r in range(grid_size):
-            for c in range(grid_size):
-                grid[r][c] = expected[r][c] if expected[r][c] == 7 else 0  # TODO remove
+        # for r in range(grid_size):
+        #     for c in range(grid_size):
+        #         grid[r][c] = expected[r][c] if expected[r][c] == 7 else 0  # TODO remove
 
         if is_grid_broken(grid):
             continue
 
-        print('Trying:', indices)
-        print_board(grid, clues)
+        # print('Trying:', indices)
+        # print_board(grid, clues)
         if solve_puzzle_helper(grid, 0):
-            return grid
+            return result_grid
 
-        raise Exception('No solution found')  # TODO remove
+        # raise Exception('No solution found')  # TODO remove
 
     assert False, 'No solution found'
 
