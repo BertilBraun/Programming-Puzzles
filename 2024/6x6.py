@@ -50,7 +50,6 @@ Each puzzle has only one possible solution
 """
 
 from typing import Iterable, Set
-from itertools import permutations
 
 
 DEBUG_EXPECTED = False
@@ -215,7 +214,9 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
                 cs, ce = ce, cs
                 entries = reversed(entries)
             entries = list(entries)
-            if not lookup_table[calculate_lookup_table_index(entries, cs, ce)]:
+            if cs != 0 and not lookup_table[calculate_lookup_table_index(reversed(entries), 0, cs)]:
+                return True
+            if ce != 0 and not lookup_table[calculate_lookup_table_index(entries, 0, ce)]:
                 return True
 
         return False
@@ -270,8 +271,9 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
 
 all_clues = set()
 for i in range(8):
-    for j in range(i, 8):
-        all_clues.add((i, j))
+    all_clues.add((0, i))
+    # for j in range(i, 8):
+    #    all_clues.add((i, j))
 all_clues.remove((0, 0))
 lookup_table = precalculate_lookup_table(7, all_clues)
 
