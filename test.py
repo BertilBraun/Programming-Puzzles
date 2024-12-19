@@ -38,6 +38,14 @@ def assert_equals(a, b, clues):
 # print(res)
 # assert_equals(res, expected, clues)
 
+import time
+
+def timed_solve(clues, size):
+    start = time.time()
+    res = solve_puzzle(clues, size)
+    print('Time:', time.time() - start)
+    return res
+
 
 expected = [
 [1, 5, 6, 7, 4, 3, 2],
@@ -49,13 +57,11 @@ expected = [
 [7, 1, 2, 4, 5, 6, 3],
 ]
 clues = [7, 0, 0, 0, 2, 2, 3, 0, 0, 3, 0, 0, 0, 0, 3, 0, 3, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 4]
-assert_equals(solve_puzzle(clues, 7), expected, clues)
-
-exit()  # TODO
+assert_equals(timed_solve(clues, 7), expected, clues)
 
 clues = [0, 2, 3, 0, 2, 0, 0, 5, 0, 4, 5, 0, 4, 0, 0, 4, 2, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0]
 assert_equals(
-solve_puzzle(clues, 7),  # for a _very_ hard puzzle, replace the last 7 values with zeroes
+timed_solve(clues, 7),  # for a _very_ hard puzzle, replace the last 7 values with zeroes
 [
     [7, 6, 2, 1, 5, 4, 3],
     [1, 3, 5, 4, 2, 7, 6],
@@ -70,7 +76,7 @@ clues,
 
 clues = [0, 0, 5, 0, 0, 0, 6, 4, 0, 0, 2, 0, 2, 0, 0, 5, 2, 0, 0, 0, 5, 0, 3, 0, 5, 0, 0, 3]
 assert_equals(
-solve_puzzle(clues, 7),
+timed_solve(clues, 7),
 [
     [3, 4, 1, 7, 6, 5, 2],
     [7, 1, 2, 5, 4, 6, 3],
@@ -82,3 +88,6 @@ solve_puzzle(clues, 7),
 ],
 clues,
 )
+
+clues = [6, 4, 0, 2, 0, 0, 3, 0, 3, 3, 3, 0, 0, 4, 0, 5, 0, 5, 0, 2, 0, 0, 0, 0, 4, 0, 0, 3]
+timed_solve(clues, 7)
