@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
+import time
+
+begin_time = time.time()
 from solver import *
+import_time = time.time() - begin_time
+
+print("Import time:", import_time)
 
 def assert_equals(a, b, clues):
     a = list(list(row) for row in a)
@@ -38,7 +44,6 @@ def assert_equals(a, b, clues):
 # print(res)
 # assert_equals(res, expected, clues)
 
-import time
 
 def timed_solve(clues, size):
     start = time.time()
@@ -89,5 +94,30 @@ timed_solve(clues, 7),
 clues,
 )
 
-clues = [6, 4, 0, 2, 0, 0, 3, 0, 3, 3, 3, 0, 0, 4, 0, 5, 0, 5, 0, 2, 0, 0, 0, 0, 4, 0, 0, 3]
+print("Real test")
+begin_time = time.time()
+
+clues = [7, 0, 0, 0, 2, 2, 3, 0, 0, 3, 0, 0, 0, 0, 3, 0, 3, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 4]
+print("Medium")
 timed_solve(clues, 7)
+clues =  [6, 4, 0, 2, 0, 0, 3, 0, 3, 3, 3, 0, 0, 4, 0, 5, 0, 5, 0, 2, 0, 0, 0, 0, 4, 0, 0, 3]
+print("Hard")
+timed_solve(clues, 7)
+clues =  [0, 0, 0, 5, 0, 0, 3, 0, 6, 3, 4, 0, 0, 0, 3, 0, 0, 0, 2, 4, 0, 2, 6, 2, 2, 2, 0, 0]
+print("Hard")
+timed_solve(clues, 7)
+clues =  [0, 0, 5, 0, 0, 0, 6, 4, 0, 0, 2, 0, 2, 0, 0, 5, 2, 0, 0, 0, 5, 0, 3, 0, 5, 0, 0, 3]
+print("Very Hard")
+timed_solve(clues, 7)
+clues = [0, 0, 5, 3, 0, 2, 0, 0, 0, 0, 4, 5, 0, 0, 0, 0, 0, 3, 2, 5, 4, 2, 2, 0, 0, 0, 0, 5]
+print("Very Hard")
+timed_solve(clues, 7)
+clues = [0, 2, 3, 0, 2, 0, 0, 5, 0, 4, 5, 0, 4, 0, 0, 4, 2, 0, 0, 0, 6, 5, 2, 2, 2, 2, 4, 1]
+print("Very Hard")
+timed_solve(clues, 7)
+clues = [0, 2, 3, 0, 2, 0, 0, 5, 0, 4, 5, 0, 4, 0, 0, 4, 2, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0]
+timed_solve(clues, 7)
+print("Medved")
+clues = [3, 3, 2, 1, 2, 2, 3, 4, 3, 2, 4, 1, 4, 2, 2, 4, 1, 4, 5, 3, 2, 3, 1, 4, 2, 5, 2, 3]
+timed_solve(clues, 7)
+print("Time:", time.time() - begin_time + import_time)
