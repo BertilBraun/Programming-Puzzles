@@ -49,7 +49,7 @@ Each puzzle has only one possible solution
 `SolvePuzzle()` returns matrix `int[][]`. The first indexer is for the row, the second indexer for the column.
 """
 
-from typing import Iterable
+from typing import Iterable, Set
 from itertools import permutations
 
 
@@ -80,45 +80,52 @@ def print_board(grid, clues):
     global_print()
 
 
-def calculate_lookup_table_index(buildings: Iterable[int], clue: int) -> int:
+def calculate_lookup_table_index(buildings: Iterable[int], clue_start: int, clue_end: int) -> int:
     lookup_table_index = 0
     for b in buildings:
         lookup_table_index <<= 3
         lookup_table_index += b
     lookup_table_index <<= 3
-    lookup_table_index += clue
+    lookup_table_index += clue_start
+    lookup_table_index <<= 3
+    lookup_table_index += clue_end
     return lookup_table_index
 
 
 def is_lookup_true(buildings: Iterable[int], clue: int) -> bool:
-    # print('Checking:', buildings, clue)
+    if clue == 0:
+        return True
+
     num_visible = 0
     max_height = 0
     for building in buildings:
         if building > max_height:
             num_visible += 1
             max_height = building
+
     return num_visible == clue
 
 
-def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
+def precalculate_lookup_table(grid_size: int, all_clues: Set[tuple[int, int]]) -> dict[int, bool]:
     lookup_table = {}
 
     def gen(place_n, num, buildings, num_zeros):
         # print(place_n, num, perm)
         if place_n == 0:
-            for clue in range(1, grid_size + 1):
+            for cs, ce in all_clues:
                 if num_zeros == 0:
-                    lookup_table[calculate_lookup_table_index(buildings, clue)] = is_lookup_true(buildings, clue)
+                    lookup_table[calculate_lookup_table_index(buildings, cs, ce)] = is_lookup_true(
+                        buildings, cs
+                    ) and is_lookup_true(reversed(buildings), ce)
                 else:
                     zero_index = buildings.index(0)
-                    key = calculate_lookup_table_index(buildings, clue)
+                    key = calculate_lookup_table_index(buildings, cs, ce)
                     for i in range(1, grid_size + 1):
                         if i in buildings:
                             continue
                         buildings[zero_index] = i
                         # print('Lookup', buildings, clue)
-                        if lookup_table[calculate_lookup_table_index(buildings, clue)]:
+                        if lookup_table[calculate_lookup_table_index(buildings, cs, ce)]:
                             lookup_table[key] = True
                             break
                     else:
@@ -135,83 +142,15 @@ def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
                     gen(place_n - 1, num_place + 1, buildings, num_zeros)
                     buildings[p] = 0
 
-    valid_buildings = list(range(1, grid_size + 1))
-    for clue in range(1, grid_size + 1):
-        for buildings in permutations(valid_buildings):
-            lookup_table[calculate_lookup_table_index(buildings, clue)] = is_lookup_true(buildings, clue)
+    # valid_buildings = list(range(1, grid_size + 1))
+    # for cs, ce in all_clues:
+    #     for buildings in permutations(valid_buildings):
+    #         lookup_table[calculate_lookup_table_index(buildings, cs, ce)] = is_lookup_true(buildings, clue)
 
     for n in range(grid_size, 0, -1):
         gen(n, 1, [0] * grid_size, grid_size - n)
 
     return lookup_table
-    """
-
-    valid_buildings = list(range(1, grid_size + 1))
-    for clue in range(1, grid_size + 1):
-        for buildings in permutations(valid_buildings):
-            lookup_table[calculate_lookup_table_index(buildings, clue)] = is_lookup_true(buildings, clue)
-            # print('Initial', buildings, clue, lookup_table[calculate_lookup_table_index(buildings, clue)])
-
-    def recurse(buildings, index, clue):
-        if index == grid_size:
-            return
-
-        new_buildings = buildings.copy()
-        new_buildings[index] = 0
-        key = calculate_lookup_table_index(new_buildings, clue)
-
-        for i in range(1, grid_size + 1):
-            buildings[index] = i
-            if lookup_table[calculate_lookup_table_index(buildings, clue)]:
-                lookup_table[key] = True
-                break
-
-    num = 0
-    for i in range(1, grid_size):
-        for clue in range(1, grid_size + 1):
-            for buildings in get(i):
-                left_out = [val for val in left_out if val != 0]
-                if not left_out:
-                    continue
-                zero_index = buildings.index(0)
-                if zero_index == -1:
-                    continue
-                result = False
-                for v in left_out:
-                    new_new_buildings = list(buildings)
-                    new_new_buildings[zero_index] = v
-                    # print('Checking', new_new_buildings, clue)
-                    result = result or lookup_table.get(calculate_lookup_table_index(new_new_buildings, clue), False)
-                    if result:
-                        break
-
-                num += 1
-                lookup_table[calculate_lookup_table_index(buildings, clue)] = result
-
-            # 0, 1, 2, 3, 4 ...
-            # (0, 1), (0, 2), (0, 3), (0, 4) ...
-            # (0, 1, 2), (0, 1, 3), (0, 1, 4) ...
-            # Up to ...
-            # (0, 1, 2, 3, 4, 5, 6, ...)
-            print(num)
-
-    def fill_lookup_table(buildings: list[int], clue: int, index: int) -> None:
-        if index == grid_size:
-            lookup_table[calculate_lookup_table_index(buildings, clue)] = is_lookup_true(buildings, clue)
-            print('Lookup:', buildings, clue, lookup_table[calculate_lookup_table_index(buildings, clue)])
-            return
-
-        for i in range(grid_size + 1):
-            buildings[index] = i
-            if i > 0 and buildings[:index].count(i) > 0:
-                continue
-            fill_lookup_table(buildings, clue, index + 1)
-            buildings[index] = 0
-
-    # for clue in range(1, grid_size + 1):
-    #     buildings = [0] * grid_size
-    #     fill_lookup_table(buildings, clue, 0)
-    return lookup_table"""
 
 
 # lookup_table = precalculate_lookup_table(7)
@@ -229,88 +168,18 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
     # I will also need helper functions to check the visibility of skyscrapers from different directions.
     # I will start by implementing the helper functions.
 
-    lookup_table = precalculate_lookup_table(grid_size)
-
     def get_col(grid: list[list[int]], col: int) -> list[int]:
         return [grid[row][col] for row in range(grid_size)]
 
     def get_row(grid: list[list[int]], row: int) -> list[int]:
         return grid[row]
 
-    def is_valid_row(grid: list[list[int]], row: int) -> bool:
-        # Check if the row contains unique values.
-        return len(set(get_row(grid, row))) == grid_size
-
-    def is_valid_column(grid: list[list[int]], col: int) -> bool:
-        # Check if the column contains unique values.
-        return len(set(get_col(grid, col))) == grid_size
-
-    def is_valid_row_clue(grid: list[list[int]], clue: int, row: int, direction: str) -> bool:
-        # Check if the row clue is satisfied.
-        if clue == 0:
-            return True
-        if direction == 'left':
-            return check_break_clue_min_and_max(get_row(grid, row), clue)
-        elif direction == 'right':
-            return check_break_clue_min_and_max(get_row(grid, row)[::-1], clue)
-        assert False
-
-    def is_valid_column_clue(grid: list[list[int]], clue: int, col: int, direction: str) -> bool:
-        # Check if the column clue is satisfied.
-        if clue == 0:
-            return True
-        if direction == 'up':
-            return check_break_clue_min_and_max(get_col(grid, col), clue)
-        elif direction == 'down':
-            return check_break_clue_min_and_max(get_col(grid, col)[::-1], clue)
-        assert False
-
-    def count_visible_buildings(buildings: list[int], remaining: list[int]) -> int:
-        # Count the number of visible buildings in a row or column.
-
-        visible_buildings = 0
-        max_height = 0
-        remaining_index = 0
-
-        for building in buildings:
-            if building == 0:
-                # while remaining_index < len(remaining) and remaining[remaining_index] <
-                building = remaining[remaining_index]
-                remaining_index += 1
-            if building > max_height:
-                visible_buildings += 1
-                max_height = building
-
-        return visible_buildings
-
-    def check_break_clue_min_and_max(buildings: list[int], clue: int) -> bool:
-        # TODO look at both clues for a row/col to break even earlier
-        return lookup_table[calculate_lookup_table_index(buildings, clue)]
-
-    def does_break_clue(grid: list[list[int]], row: int, col: int, direction: str, clue: int) -> bool:
-        # Check if placing a building at a given position breaks the clue.
-        if clue == 0:
-            return False
-        if direction == 'left':
-            return check_break_clue_min_and_max(get_row(grid, row), clue)
-        elif direction == 'right':
-            return check_break_clue_min_and_max(get_row(grid, row)[::-1], clue)
-        elif direction == 'up':
-            return check_break_clue_min_and_max(get_col(grid, col), clue)
-        elif direction == 'down':
-            return check_break_clue_min_and_max(get_col(grid, col)[::-1], clue)
-        assert False
-
     def entries_from_direction(grid: list[list[int]], row: int, col: int, direction: str) -> list[int]:
         # Check if placing a building at a given position breaks the clue.
-        if direction == 'left':
+        if direction == 'left-right':
             return get_row(grid, row)
-        elif direction == 'right':
-            return get_row(grid, row)[::-1]
-        elif direction == 'up':
+        elif direction == 'up-down':
             return get_col(grid, col)
-        elif direction == 'down':
-            return get_col(grid, col)[::-1]
         assert False
 
     def does_break_count(grid: list[list[int]], row: int, col: int) -> bool:
@@ -323,23 +192,6 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
             if col_values.count(i) > 1:
                 return True
         return False
-
-    def is_solution(grid: list[list[int]]) -> bool:
-        # Check if the grid is a valid solution.
-        for i in range(grid_size):
-            if not is_valid_column(grid, i):
-                return False
-            if not is_valid_row(grid, i):
-                return False
-            if not is_valid_column_clue(grid, clues[i], i, 'up'):
-                return False
-            if not is_valid_row_clue(grid, clues[4 * grid_size - 1 - i], i, 'left'):
-                return False
-            if not is_valid_column_clue(grid, clues[3 * grid_size - 1 - i], i, 'down'):
-                return False
-            if not is_valid_row_clue(grid, clues[grid_size + i], i, 'right'):
-                return False
-        return True
 
     def does_break(grid: list[list[int]], row: int, col: int) -> bool:
         # Check if placing a building at a given position breaks the clues.
@@ -357,11 +209,14 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
         if does_break_count(grid, row, col):  # This should be fine forever
             return True
 
-        for dir, clue in zip(DIRS, grid_clues[row][col]):
-            if clue == 0:
+        for dir, (cs, ce) in zip(DIRS, grid_clues[row][col]):
+            if cs == 0 and ce == 0:
                 continue
             entries = entries_from_direction(grid, row, col, dir)
-            if not lookup_table[calculate_lookup_table_index(entries, clue)]:
+            if cs > ce:
+                cs, ce = ce, cs
+                entries = reversed(entries)
+            if not lookup_table[calculate_lookup_table_index(entries, cs, ce)]:
                 return True
 
         return False
@@ -371,23 +226,9 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
         # print_board(grid, clues)
         if lookup_index == len(lookup_order):
             return True
-            return is_solution(grid)
 
         _, row, col = lookup_order[lookup_index]
         for height in [expected[row][col]] if DEBUG_EXPECTED else range(grid_size, 0, -1):
-            if lookup_index < 9:
-                print(
-                    'Trying lookup index:',
-                    lookup_index,
-                    'height:',
-                    height,
-                    'row:',
-                    row,
-                    'col:',
-                    col,
-                    'expected:',
-                    # expected[row][col],
-                )
             grid[row][col] = height
             if not does_break(grid, row, col) and solve_puzzle_helper(grid, lookup_index + 1):
                 return True
@@ -399,14 +240,12 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
 
     # for each cell, keep track of the 4 clues that are visible from that cell
     # up, right, down, left
-    DIRS = ('up', 'right', 'down', 'left')
+    DIRS = ('up-down', 'left-right')
     grid_clues = [
         [
             (
-                clues[col],
-                clues[grid_size + row],
-                clues[3 * grid_size - 1 - col],
-                clues[4 * grid_size - 1 - row],
+                (clues[col], clues[3 * grid_size - 1 - col]),
+                (clues[4 * grid_size - 1 - row], clues[grid_size + row]),
             )
             for col in range(grid_size)
         ]
@@ -415,9 +254,23 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
 
     # store the grid_size * grid_size moves in order of interest based on how restrictive the clues about a given location are
     # store (num_constraints, row, col) tuples
-    lookup_order = [(sum(grid_clues[row][col]), row, col) for row in range(grid_size) for col in range(grid_size)]
+    lookup_order = [
+        (sum(clue for clues in grid_clues[row][col] for clue in clues), row, col)
+        for row in range(grid_size)
+        for col in range(grid_size)
+    ]
     lookup_order.sort(reverse=True)
     # lookup_order = [(0, row, col) for row in range(grid_size) for col in range(grid_size)]
+
+    all_clues = set()
+    for row in range(grid_size):
+        for col in range(grid_size):
+            for cs, ce in grid_clues[row][col]:
+                all_clues.add((min(cs, ce), max(cs, ce)))
+
+    if (0, 0) in all_clues:
+        all_clues.remove((0, 0))
+    lookup_table = precalculate_lookup_table(grid_size, all_clues)
 
     grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
     solve_puzzle_helper(grid, 0)
@@ -426,8 +279,13 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
     return grid
 
 
+import time
+
+
 def assert_equals(a, b, clues):
     global_print('Testing:')
+    a = list(list(row) for row in a)
+    b = list(list(row) for row in b)
     print_board(a, clues)
     print_board(b, clues)
     assert all(row == expected_row for row, expected_row in zip(a, b))
@@ -472,24 +330,9 @@ res = solve_puzzle(clues, 7)
 global_print(res)
 assert_equals(res, expected, clues)
 
-exit()
+clues = [0, 2, 3, 0, 2, 0, 0, 5, 0, 4, 5, 0, 4, 0, 0, 4, 2, 0, 0, 0, 6, 5, 2, 2, 2, 2, 4, 1]
 assert_equals(
-    solve_puzzle([0, 0, 5, 0, 0, 0, 6, 4, 0, 0, 2, 0, 2, 0, 0, 5, 2, 0, 0, 0, 5, 0, 3, 0, 5, 0, 0, 3], 7),
-    [
-        [3, 4, 1, 7, 6, 5, 2],
-        [7, 1, 2, 5, 4, 6, 3],
-        [6, 3, 5, 2, 1, 7, 4],
-        [1, 2, 3, 6, 7, 4, 5],
-        [5, 7, 6, 4, 2, 3, 1],
-        [4, 5, 7, 1, 3, 2, 6],
-        [2, 6, 4, 3, 5, 1, 7],
-    ],
-)
-
-assert_equals(
-    solve_puzzle(
-        [0, 2, 3, 0, 2, 0, 0, 5, 0, 4, 5, 0, 4, 0, 0, 4, 2, 0, 0, 0, 6, 5, 2, 2, 2, 2, 4, 1], 7
-    ),  # for a _very_ hard puzzle, replace the last 7 values with zeroes
+    solve_puzzle(clues, 7),  # for a _very_ hard puzzle, replace the last 7 values with zeroes
     [
         [7, 6, 2, 1, 5, 4, 3],
         [1, 3, 5, 4, 2, 7, 6],
@@ -499,4 +342,5 @@ assert_equals(
         [3, 7, 6, 2, 1, 5, 4],
         [2, 4, 3, 5, 6, 1, 7],
     ],
+    clues,
 )
