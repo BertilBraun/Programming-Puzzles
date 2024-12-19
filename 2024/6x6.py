@@ -52,8 +52,12 @@ Each puzzle has only one possible solution
 from typing import Iterable, Set
 
 
+LOOKUP_TABLE_NUMS = []
+
+
 DEBUG_EXPECTED = False
 DEBUG_PRINT = False
+GENERATE_LOOKUP_TABLE = False
 
 global_print = print
 global_input = input
@@ -81,13 +85,13 @@ def print_board(grid, clues):
 
 def calculate_lookup_table_index(buildings: Iterable[int], clue_start: int, clue_end: int) -> int:
     lookup_table_index = 0
-    for b in buildings:
-        lookup_table_index <<= 3
-        lookup_table_index += b
     lookup_table_index <<= 3
     lookup_table_index += clue_start
     lookup_table_index <<= 3
     lookup_table_index += clue_end
+    for b in buildings:
+        lookup_table_index <<= 3
+        lookup_table_index += b
     return lookup_table_index
 
 
@@ -117,17 +121,14 @@ def precalculate_lookup_table(grid_size: int, all_clues: Set[tuple[int, int]]) -
                     lookup_table[key] = is_lookup_true(buildings, cs) and is_lookup_true(reversed(buildings), ce)
                 else:
                     zero_index = buildings.index(0)
-                    lookup_table[key] = False
                     for i in range(1, grid_size + 1):
                         if i in buildings:
                             continue
-                        buildings[zero_index] = i
-                        # print('Lookup', buildings, clue)
-                        if lookup_table[calculate_lookup_table_index(buildings, cs, ce)]:
+                        new_key = key + (i << (3 * (grid_size - 1 - zero_index)))
+
+                        if lookup_table.get(new_key, False):
                             lookup_table[key] = True
                             break
-
-                    buildings[zero_index] = 0
 
         n_remaining = grid_size - num + 1
 
@@ -209,14 +210,16 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
             if cs == 0 and ce == 0:
                 continue
             entries = entries_from_direction(grid, row, col, dir)
-            entries = list(entries)
             if cs > ce:
                 cs, ce = ce, cs
                 entries = reversed(entries)
             entries = list(entries)
-            if cs != 0 and not lookup_table[calculate_lookup_table_index(reversed(entries), 0, cs)]:
+            # if not access_lookup_table(calculate_lookup_table_index(entries, cs, ce)):
+            #    return True
+
+            if cs != 0 and not access_lookup_table(calculate_lookup_table_index(reversed(entries), 0, cs)):
                 return True
-            if ce != 0 and not lookup_table[calculate_lookup_table_index(entries, 0, ce)]:
+            if ce != 0 and not access_lookup_table(calculate_lookup_table_index(entries, 0, ce)):
                 return True
 
         return False
@@ -226,6 +229,8 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
         # print_board(grid, clues)
         if lookup_index == len(lookup_order):
             return True
+
+        # get most constrained cell instead of continuning the lookup order
 
         _, row, col = lookup_order[lookup_index]
         for height in [expected[row][col]] if DEBUG_EXPECTED else range(grid_size, 0, -1):
@@ -269,13 +274,29 @@ def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
     return grid
 
 
-all_clues = set()
-for i in range(8):
-    all_clues.add((0, i))
-    # for j in range(i, 8):
-    #    all_clues.add((i, j))
-all_clues.remove((0, 0))
-lookup_table = precalculate_lookup_table(7, all_clues)
+if GENERATE_LOOKUP_TABLE or True:
+    all_clues = set()
+    for i in range(8):
+        all_clues.add((0, i))
+        # for j in range(i, 8):
+        #    all_clues.add((i, j))
+    all_clues.remove((0, 0))
+    lookup_table = precalculate_lookup_table(7, all_clues)
+
+    # with open('lookup_table.txt', 'w') as f:
+    #     f.write('LOOKUP_TABLE_NUMS = [\n')
+    #     for key, value in lookup_table.items():
+    #         if value:
+    #             f.write(f'{key},\n')
+    #     f.write(']\n')
+else:
+    lookup_table = {}
+    for key in LOOKUP_TABLE_NUMS:
+        lookup_table[key] = True
+
+
+def access_lookup_table(index):
+    return lookup_table.get(index, False)
 
 
 def assert_equals(a, b, clues):
@@ -324,7 +345,6 @@ expected = [
 ]
 clues = [7, 0, 0, 0, 2, 2, 3, 0, 0, 3, 0, 0, 0, 0, 3, 0, 3, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 4]
 res = solve_puzzle(clues, 7)
-global_print(res)
 assert_equals(res, expected, clues)
 
 clues = [0, 2, 3, 0, 2, 0, 0, 5, 0, 4, 5, 0, 4, 0, 0, 4, 2, 0, 0, 0, 6, 5, 2, 2, 2, 2, 4, 1]
