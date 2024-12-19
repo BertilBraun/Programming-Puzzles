@@ -49,13 +49,12 @@ Each puzzle has only one possible solution
 `SolvePuzzle()` returns matrix `int[][]`. The first indexer is for the row, the second indexer for the column.
 """
 
-from copy import copy
-from itertools import permutations
 from typing import Iterable
+from itertools import permutations
 
 
-DEBUG_EXPECTED = True
-DEBUG_PRINT = True
+DEBUG_EXPECTED = False
+DEBUG_PRINT = False
 
 global_print = print
 global_input = input
@@ -215,12 +214,12 @@ def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
     return lookup_table"""
 
 
-lookup_table = precalculate_lookup_table(7)
-print(len(lookup_table))
-exit()
+# lookup_table = precalculate_lookup_table(7)
+# print(len(lookup_table))
+# exit()
 
 
-def solve_puzzle(clues: list[int], grid_size) -> list[list[int]]:
+def solve_puzzle(clues: list[int], grid_size=7) -> Iterable[Iterable[int]]:
     # I'm thinking about a backtracking approach to solve this problem.
     # I will start by creating a 4x4 grid with all values set to 0.
     # Then I will try to place the skyscrapers in the grid and check if the clues are satisfied.
@@ -302,6 +301,18 @@ def solve_puzzle(clues: list[int], grid_size) -> list[list[int]]:
             return check_break_clue_min_and_max(get_col(grid, col)[::-1], clue)
         assert False
 
+    def entries_from_direction(grid: list[list[int]], row: int, col: int, direction: str) -> list[int]:
+        # Check if placing a building at a given position breaks the clue.
+        if direction == 'left':
+            return get_row(grid, row)
+        elif direction == 'right':
+            return get_row(grid, row)[::-1]
+        elif direction == 'up':
+            return get_col(grid, col)
+        elif direction == 'down':
+            return get_col(grid, col)[::-1]
+        assert False
+
     def does_break_count(grid: list[list[int]], row: int, col: int) -> bool:
         # Check if placing a building at a given position breaks the count.
         row_values = get_row(grid, row)
@@ -336,7 +347,8 @@ def solve_puzzle(clues: list[int], grid_size) -> list[list[int]]:
         # TODO check if we can improve the pruning
         # check by hand
         print('Checking if breaking:', row, col)
-        print_board(grid, clues)
+        if DEBUG_PRINT:
+            print_board(grid, clues)
         # input('Press enter to continue')
 
         # TODO also break if the count from min is broken - i.e. if the clue is 1 but the max val is not directly next to it, then the clue is definitely broken - does that work for other clues as well? - if so, how?
@@ -346,7 +358,10 @@ def solve_puzzle(clues: list[int], grid_size) -> list[list[int]]:
             return True
 
         for dir, clue in zip(DIRS, grid_clues[row][col]):
-            if does_break_clue(grid, row, col, dir, clue):  # This is the problem
+            if clue == 0:
+                continue
+            entries = entries_from_direction(grid, row, col, dir)
+            if not lookup_table[calculate_lookup_table_index(entries, clue)]:
                 return True
 
         return False
@@ -376,7 +391,7 @@ def solve_puzzle(clues: list[int], grid_size) -> list[list[int]]:
             grid[row][col] = height
             if not does_break(grid, row, col) and solve_puzzle_helper(grid, lookup_index + 1):
                 return True
-            else:
+            elif DEBUG_EXPECTED:
                 print_board(grid, clues)
                 raise Exception('')
         grid[row][col] = 0
@@ -406,6 +421,8 @@ def solve_puzzle(clues: list[int], grid_size) -> list[list[int]]:
 
     grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
     solve_puzzle_helper(grid, 0)
+    if grid_size == 6:
+        return tuple(tuple(row) for row in grid)
     return grid
 
 
