@@ -132,6 +132,10 @@ def precalculate_lookup_table(grid_size: int) -> dict[int, bool]:
 
 def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]]:
     result_grid = None
+    all_nums = set(range(1, grid_size + 1))
+
+    print("CLUES: ")
+    print(clues)
 
     def get_col(grid: list[list[int]], col: int) -> list[int]:
         return [grid[row][col] for row in range(grid_size)]
@@ -216,34 +220,8 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
         # rows = [set() for _ in range(grid_size)]
         # cols = [set() for _ in range(grid_size)]
 
-        all_nums = set(range(1, grid_size + 1))
 
-        for r, row_nums in enumerate(rows):
-            if len(row_nums) == grid_size - 1:
-                num = (all_nums - row_nums).pop()
-                for c in range(grid_size):
-                    if grid[r][c] == 0:
-                        grid[r][c] = num
-                        row_nums.add(num)
-                        if does_break(grid, r, c):
-                            # This was the last possible number to place in this row
-                            # But it broke the grid, so we need to backtrack
-                            return False
-                        break
-
-        for c, col_nums in enumerate(cols):
-            if len(col_nums) == grid_size - 1:
-                num = (all_nums - col_nums).pop()
-                for r in range(grid_size):
-                    if grid[r][c] == 0:
-                        grid[r][c] = num
-                        col_nums.add(num)
-                        if does_break(grid, r, c):
-                            # This was the last possible number to place in this column
-                            # But it broke the grid, so we need to backtrack
-                            return False
-                        break
-
+        # Fills every cell that is determined by uniqueness constraints on row + col
         for r in range(grid_size):
             for c in range(grid_size):
                 if grid[r][c] != 0:
@@ -258,19 +236,14 @@ def solve_puzzle(clues: list[int], grid_size: int = 7) -> Iterable[Iterable[int]
                     if does_break(grid, r, c):
                         return False
 
-        assert not is_grid_broken(grid)  # TODO remove
         if grid[row][col] != 0:
             return solve_puzzle_helper(grid, lookup_index + 1)
 
-        # assert expected[row][col] in (all_nums - (rows[row] | cols[col]))  # TODO remove
-
         for height in all_nums - (rows[row] | cols[col]):
             grid[row][col] = height
-            # grid[row][col] = expected[row][col]  # TODO remove
             if not does_break(grid, row, col) and solve_puzzle_helper(grid, lookup_index + 1):
                 return True
 
-        grid[row][col] = 0
         return False
 
     # ========================================================
