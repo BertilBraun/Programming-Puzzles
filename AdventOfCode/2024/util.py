@@ -46,3 +46,29 @@ class Point:
 
     def cardinal_neighbours(self) -> list[Point]:
         return [self + Point(*dir) for dir in [(0, 1), (1, 0), (0, -1), (-1, 0)]]
+
+    @staticmethod
+    def parse(s: str) -> Point:
+        first, second = s.split(',')
+        # replace all non digits and '-' with empty string
+        first = ''.join(c for c in first if c.isdigit() or c == '-')
+        second = ''.join(c for c in second if c.isdigit() or c == '-')
+        return Point(int(first), int(second))
+
+
+def dijkstra(map: list[list[int]], start: Point, end: Point) -> list[list[int]]:
+    N, M = len(map), len(map[0])
+    q = [(0, start)]
+    distances = [[9999999999] * M for _ in range(N)]
+    distances[start.y][start.x] = 0
+
+    while q:
+        d, pos = q.pop(0)
+        if pos == end:
+            break
+        for npos in pos.cardinal_neighbours():
+            if npos.in_bounds(N, M) and map[npos.y][npos.x] != 1:
+                if d + 1 < distances[npos.y][npos.x]:
+                    distances[npos.y][npos.x] = d + 1
+                    q.append((d + 1, npos))
+    return distances
