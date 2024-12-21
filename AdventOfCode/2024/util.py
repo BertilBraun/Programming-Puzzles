@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Iterable
 
 
 class Point:
@@ -72,3 +73,25 @@ def dijkstra(map: list[list[int]], start: Point, end: Point) -> list[list[int]]:
                     distances[npos.y][npos.x] = d + 1
                     q.append((d + 1, npos))
     return distances
+
+
+def parse_grid(input: str) -> list[list[str]]:
+    return [list(row.strip()) for row in input.split('\n')]
+
+
+def find_pos(grid: list[list[str]], target: str) -> Point:
+    for y, row in enumerate(grid):
+        for x, cell in enumerate(row):
+            if cell == target:
+                return Point(x, y)
+    raise ValueError(f'{target} not found in grid')
+
+
+def calculate_overlap(A: Iterable, B: Iterable) -> int:
+    equal_count = 0
+    for a, b in zip(A, B):
+        if a == b:
+            equal_count += 1
+        else:
+            break
+    return equal_count
