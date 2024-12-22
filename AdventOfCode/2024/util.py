@@ -1,5 +1,11 @@
 from __future__ import annotations
 from typing import Iterable
+from pprint import pprint  # noqa
+from collections import *  # noqa
+from itertools import *  # noqa
+from heapq import *  # noqa
+from math import *  # noqa
+from tqdm import tqdm, trange  # noqa
 
 
 class Point:
@@ -77,6 +83,10 @@ def dijkstra(map: list[list[int]], start: Point, end: Point) -> list[list[int]]:
 
 def parse_grid(input: str) -> list[list[str]]:
     return [list(row.strip()) for row in input.split('\n')]
+
+
+def parse_ints(input: str) -> list[int]:
+    return [int(x.strip()) for x in input.split()]
 
 
 def find_pos(grid: list[list[str]], target: str) -> Point:
