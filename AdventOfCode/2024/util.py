@@ -6,6 +6,8 @@ from itertools import *  # noqa
 from heapq import *  # noqa
 from math import *  # noqa
 from tqdm import tqdm, trange  # noqa
+from functools import *  # noqa
+from random import *  # noqa
 
 
 class Point:
