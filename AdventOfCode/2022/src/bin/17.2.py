@@ -49,41 +49,31 @@ def simulate_large_rock_count(jet_pattern, total_rocks):
 
         return chamber_height, jet_index
 
-    for rock_num in range(total_rocks):
-        chamber_height, jet_index = simulate_rock(rock_num, chamber_height, jet_index)
+    t = 0
+    added = 0
+    while t < total_rocks:
+        chamber_height, jet_index = simulate_rock(t, chamber_height, jet_index)
 
         state_key = (
-            rock_num % len(rock_shapes),
+            t % len(rock_shapes),
             jet_index,
-            tuple(tuple(row) for row in chamber[chamber_height - 4 : chamber_height]),
+            tuple(tuple(row) for row in chamber[chamber_height - 50 : chamber_height]),
         )
         if state_key in seen_states:
-            prev_rock_num, prev_height = seen_states[state_key]
-            cycle_length = rock_num - prev_rock_num
-            prev_rock_num += 1
-            cycle_height = chamber_height - prev_height
+            old_t, old_y = seen_states[state_key]
+            dt = t - old_t
+            dy = chamber_height - old_y
 
-            full_cycles = (total_rocks - prev_rock_num) // cycle_length
-            remaining_rocks = (total_rocks - prev_rock_num) % cycle_length
-            total_height = prev_height + full_cycles * cycle_height
+            full_cycles = (total_rocks - t) // dt
+            t += full_cycles * dt
+            added += full_cycles * dy
 
-            print(
-                f'Cycle length: {cycle_length}, Cycle height: {cycle_height}, Full cycles: {full_cycles}, Remaining rocks: {remaining_rocks}, Total height: {total_height} Previous height: {prev_height}, Current height: {chamber_height}, Previous rock: {prev_rock_num % len(rock_shapes)}'
-            )
+            assert t < total_rocks
 
-            prev_chamber_height = chamber_height
+        seen_states[state_key] = (t, chamber_height)
+        t += 1
 
-            for r in range(remaining_rocks):
-                chamber_height, jet_index = simulate_rock(prev_rock_num + r, chamber_height, jet_index)
-
-            chamber_growth = chamber_height - prev_chamber_height
-            print(
-                f'Current height: {chamber_height}, Previous height: {prev_chamber_height}, Growth: {chamber_growth}, Total height: {total_height + chamber_growth}'
-            )
-            return total_height + chamber_growth
-        seen_states[state_key] = (rock_num, chamber_height)
-
-    return chamber_height
+    return chamber_height + added
 
 
 # Input
@@ -92,5 +82,4 @@ total_rocks = 1000000000000
 
 # Calculate the height of the tower
 tower_height = simulate_large_rock_count(jet_pattern, total_rocks)
-assert tower_height < 1590724637676
 print(f'The height of the tower after {total_rocks} rocks is: {tower_height}')
