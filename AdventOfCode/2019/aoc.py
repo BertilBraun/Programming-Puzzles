@@ -25,12 +25,12 @@ YEAR = 2019
 
 def get_input(day: int, year: int = YEAR) -> str:
     req = requests.get(f'https://adventofcode.com/{year}/day/{day}/input', headers={'cookie': 'session=' + AOC_COOKIE})
-    return req.text
+    return req.text.strip()
 
 
 def get_example(day: int, offset: int = 0, year: int = YEAR) -> str:
     req = requests.get(f'https://adventofcode.com/{year}/day/{day}', headers={'cookie': 'session=' + AOC_COOKIE})
-    return req.text.split('<pre><code>')[offset + 1].split('</code></pre>')[0]
+    return req.text.split('<pre><code>')[offset + 1].split('</code></pre>')[0].strip()
 
 
 def submit(day: int, part: Literal[1, 2], answer: str | int, year: int = YEAR) -> None:
