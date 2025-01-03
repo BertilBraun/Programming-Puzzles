@@ -16,10 +16,15 @@ Your cookie is similar to a password, >>> DO NOT SHARE/PUBLISH IT <<<
 If you intend to share your solutions, store it in an env variable or a file.
 """
 
+from pathlib import Path
 from typing import Literal
 import requests
 
-AOC_COOKIE = '53616c7465645f5fbcbf2ae2317bce012d724bdcd3c6754b00e9c44dfba076b7a950dd6ecefb720c53187f7a8e47b20b86a75ab5ac2aa102496dd1fb46e33ff5'
+AOC_COOKIE_FILE = 'cookie.txt'
+
+aoc_cookie_file_path = Path(__file__).parent / AOC_COOKIE_FILE
+with open(aoc_cookie_file_path) as f:
+    AOC_COOKIE = f.read().strip()
 YEAR = 2019
 
 
