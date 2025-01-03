@@ -1,7 +1,9 @@
 import os
+import sys
 
+assert len(sys.argv) == 2, 'Usage: python day.py <day_number>'
 
-day = input('Enter the day number: ')
+day = sys.argv[1]
 
 assert day.isdigit(), 'Day number must be a number'
 assert 1 <= int(day) <= 25, 'Day number must be between 1 and 25'
@@ -9,61 +11,30 @@ assert 1 <= int(day) <= 25, 'Day number must be between 1 and 25'
 # padd the day number with 0 if it is less than 10
 file_day = day.zfill(2)
 
-if os.path.exists(f'{file_day}.1.py') or os.path.exists(f'{file_day}.2.py'):
-    print(f'Files {file_day}.1.py and {file_day}.2.py already exist')
-    if input('Do you want to overwrite them? (YES/NO): ').lower() != 'yes':
+if os.path.exists(f'{file_day}.py'):
+    print(f'Files {file_day}.py already exist')
+    if input('Do you want to overwrite it? (YES/NO): ').lower() != 'yes':
         exit()
 
-with open(f'{file_day}.1.py', 'w') as f:
+with open(f'{file_day}.py', 'w') as f:
     f.write(
         f"""from aoc import *
 from util import *
 from intcode import *
 
-DAY = {day}
-EXAMPLE = False # Change to True to solve the example input
 
-if EXAMPLE:
-    input = get_example(day={day})
-else:
-    input = get_input(day={day})
-
-
-def solve(input: str) -> str | int | None:
-    # Your code here
+def solve_part1(input: str) -> str | int | None:
+    # Your code for part 1 here
     pass
 
 
-if EXAMPLE:
-    print(solve(input))
-else:
-    submit(day={day}, part=1, answer=solve(input))"""
-    )
-print(f'Created {file_day}.1.py')
-
-with open(f'{file_day}.2.py', 'w') as f:
-    f.write(
-        f"""from aoc import *
-from util import *
-from intcode import *
-
-DAY = {day}
-EXAMPLE = False # Change to True to solve the example input
-
-if EXAMPLE:
-    input = get_example(day={day})
-else:
-    input = get_input(day={day})
-    
-    
-def solve(input: str) -> str | int | None:
-    # Your code here
+def solve_part2(input: str) -> str | int | None:
+    # Your code for part 2 here
     pass
-    
-    
-if EXAMPLE:
-    print(solve(input))
-else:
-    submit(day={day}, part=2, answer=solve(input))"""
+
+
+if __name__ == '__main__':
+    aoc(day={day}, solve1=solve_part1, solve2=solve_part2, example=False)
+"""
     )
-print(f'Created {file_day}.2.py')
+print(f'Created {file_day}.py')

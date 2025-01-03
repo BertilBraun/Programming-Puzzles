@@ -11,10 +11,12 @@ else:
     input = get_input(day=5)
 
 
-def solve(input: str) -> str | int:
-    prog = parse_intcode(input)
-    output = run_intcode(prog, [5])
-    return output[-1]
+def solve(input: str) -> str | int | None:
+    print(input)
+    program = Computer(input, [5])
+    while not program.done():
+        res = program.run(None)
+    return res
 
 
 if EXAMPLE:

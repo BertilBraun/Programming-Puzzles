@@ -16,14 +16,11 @@ Your cookie is similar to a password, >>> DO NOT SHARE/PUBLISH IT <<<
 If you intend to share your solutions, store it in an env variable or a file.
 """
 
-from pathlib import Path
-from typing import Literal
+import sys
 import requests
+from typing import Literal, Callable
 
-AOC_COOKIE_FILE = 'cookie.txt'
-
-aoc_cookie_file_path = Path(__file__).parent / AOC_COOKIE_FILE
-with open(aoc_cookie_file_path) as f:
+with open('cookie.txt') as f:
     AOC_COOKIE = f.read().strip()
 YEAR = 2019
 
@@ -36,6 +33,37 @@ def get_input(day: int, year: int = YEAR) -> str:
 def get_example(day: int, offset: int = 0, year: int = YEAR) -> str:
     req = requests.get(f'https://adventofcode.com/{year}/day/{day}', headers={'cookie': 'session=' + AOC_COOKIE})
     return req.text.split('<pre><code>')[offset + 1].split('</code></pre>')[0].strip()
+
+
+assert len(sys.argv) == 2 and sys.argv[1] in ('1', '2'), 'Usage: python {{day}}.py <1|2>'
+
+
+def aoc(
+    day: int,
+    solve1: Callable[[str], str | int | None],
+    solve2: Callable[[str], str | int | None],
+    example: bool = False,
+    example_input: str | None = None,
+    year: int = YEAR,
+) -> None:
+    part: Literal[1, 2] = int(sys.argv[1])  # type: ignore
+
+    if example:
+        if example_input is None:
+            example_input = get_example(day)
+        input_str = example_input
+    else:
+        input_str = get_input(day)
+
+    if part == 1:
+        solve = solve1(input_str)
+    else:
+        solve = solve2(input_str)
+
+    if example:
+        print('Solution for example:', solve)
+    else:
+        submit(day, part, solve, year)
 
 
 def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = YEAR) -> None:
