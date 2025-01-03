@@ -18,6 +18,7 @@ with open(f'{file_day}.1.py', 'w') as f:
     f.write(
         f"""from aoc import *
 from util import *
+from intcode import *
 
 DAY = {day}
 EXAMPLE = False # Change to True to solve the example input
@@ -28,7 +29,7 @@ else:
     input = get_input(day={day})
 
 
-def solve(input: str) -> str | int:
+def solve(input: str) -> str | int | None:
     # Your code here
     pass
 
@@ -44,6 +45,7 @@ with open(f'{file_day}.2.py', 'w') as f:
     f.write(
         f"""from aoc import *
 from util import *
+from intcode import *
 
 DAY = {day}
 EXAMPLE = False # Change to True to solve the example input
@@ -54,7 +56,7 @@ else:
     input = get_input(day={day})
     
     
-def solve(input: str) -> str | int:
+def solve(input: str) -> str | int | None:
     # Your code here
     pass
     

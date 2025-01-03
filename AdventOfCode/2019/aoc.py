@@ -33,7 +33,7 @@ def get_example(day: int, offset: int = 0, year: int = YEAR) -> str:
     return req.text.split('<pre><code>')[offset + 1].split('</code></pre>')[0].strip()
 
 
-def submit(day: int, part: Literal[1, 2], answer: str | int, year: int = YEAR) -> None:
+def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = YEAR) -> None:
     print('You are about to submit the follwing answer:')
     print(f'>>>>>>>>>>>>>>>>> {answer}')
     input('Press enter to continue or Ctrl+C to abort.')
