@@ -1,7 +1,7 @@
 class Computer:
-    def __init__(self, prog: str, inputs: list[int] = []):
+    def __init__(self, prog: str):
         self.prog = [int(x) for x in prog.split(',')]
-        self.inputs = inputs
+        self.outputs = []
         self.i = 0
         self.relative_base = 0
         self.mem: dict[int, int] = {}
@@ -12,6 +12,14 @@ class Computer:
         if i < len(self.prog):
             return self.prog[i]
         return self.mem.get(i, 0)
+
+    def __setitem__(self, i: int, value: int):
+        if i < 0:
+            raise ValueError('Negative address')
+        if i < len(self.prog):
+            self.prog[i] = value
+        else:
+            self.mem[i] = value
 
     def val(self, offset: int) -> int:
         """Accesses the memory based on the mode of the instruction"""
@@ -39,18 +47,10 @@ class Computer:
         access_mode = (modes // (10 ** (offset - 1))) % 10
         val = self[self.i + offset]
 
-        def set(i: int, val: int):
-            if i < 0:
-                raise ValueError('Negative address')
-            if i < len(self.prog):
-                self.prog[i] = val
-            else:
-                self.mem[i] = val
-
         if access_mode == 0:
-            set(val, value)  # position mode
+            self[val] = value  # position mode
         elif access_mode == 2:
-            set(val + self.relative_base, value)  # relative mode
+            self[val + self.relative_base] = value  # relative mode
         else:
             # immediate mode is invalid for writing
             assert False, f'Invalid mode {access_mode}'
@@ -58,7 +58,7 @@ class Computer:
     def done(self) -> bool:
         return self[self.i] == 99
 
-    def run(self, signal: int | None) -> int | None:
+    def run_until_input(self, inputs: list[int]):
         while not self.done():
             op = self[self.i] % 100
 
@@ -71,10 +71,10 @@ class Computer:
                 self.set_val(3, self.val(1) * self.val(2))
                 self.i += 4
             elif op == 3:
-                if self.inputs:
-                    input = self.inputs.pop(0)
+                if inputs:
+                    input = inputs.pop(0)
                 else:
-                    input = signal
+                    return
 
                 assert input is not None, 'Input required'
                 self.log('Input', input, 'to', self.val(1))
@@ -84,7 +84,7 @@ class Computer:
                 self.log('Outputting', self.val(1))
                 res = self.val(1)
                 self.i += 2
-                return res
+                self.outputs.append(res)
             elif op == 5:
                 self.log('Jumping if true', self.val(1), 'to', self.val(2))
                 if self.val(1):
