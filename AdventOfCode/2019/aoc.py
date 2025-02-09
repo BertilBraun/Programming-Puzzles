@@ -75,7 +75,7 @@ def aoc(
 
 
 def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = YEAR) -> None:
-    if answer is None:
+    if not answer:
         print('No answer provided, skipping...')
         return
 
