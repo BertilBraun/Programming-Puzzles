@@ -1,6 +1,8 @@
 import os
 import sys
 
+from util import open_day_in_browser
+
 assert len(sys.argv) == 2, 'Usage: python day.py <day_number>'
 
 day = sys.argv[1]
@@ -11,30 +13,32 @@ assert 1 <= int(day) <= 25, 'Day number must be between 1 and 25'
 # padd the day number with 0 if it is less than 10
 file_day = day.zfill(2)
 
-if os.path.exists(f'{file_day}.py'):
-    print(f'Files {file_day}.py already exist')
+if os.path.exists(f'{file_day}.1.py'):
+    print(f'Files {file_day}.1.py already exist')
     if input('Do you want to overwrite it? (YES/NO): ').lower() != 'yes':
         exit()
 
-with open(f'{file_day}.py', 'w') as f:
+with open(f'{file_day}.1.py', 'w') as f:
     f.write(
         f"""from aoc import *
 from util import *
 from intcode import *
 
 
-def solve_part1(input: str) -> str | int | None:
+def solve1(input: str) -> str | int | None:
     # Your code for part 1 here
     pass
 
 
-def solve_part2(input: str) -> str | int | None:
-    # Your code for part 2 here
-    pass
-
-
 if __name__ == '__main__':
-    aoc(day={day}, solve1=solve_part1, solve2=solve_part2, example=False)
+    aoc(day={day}, solve1=solve1, example=False)
 """
     )
-print(f'Created {file_day}.py')
+print(f'Created {file_day}.1.py')
+
+# open the file in the editor
+os.system(f'code {file_day}.1.py')
+
+# open the day in the browser
+year = int(os.path.basename(os.getcwd()))
+open_day_in_browser(int(day), year)

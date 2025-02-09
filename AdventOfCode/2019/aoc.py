@@ -22,6 +22,8 @@ import sys
 import requests
 from typing import Literal, Callable
 
+from util import open_day_in_browser
+
 with open('cookie.txt') as f:
     AOC_COOKIE = f.read().strip()
 YEAR = 2019
@@ -42,8 +44,8 @@ assert len(sys.argv) == 2 and sys.argv[1] in ('1', '2'), 'Usage: python {{day}}.
 
 def aoc(
     day: int,
-    solve1: Callable[[str], str | int | None],
-    solve2: Callable[[str], str | int | None],
+    solve1: Callable[[str], str | int | None] | None = None,
+    solve2: Callable[[str], str | int | None] | None = None,
     example: bool = False,
     example_input: str | None = None,
     year: int = YEAR,
@@ -58,8 +60,10 @@ def aoc(
         input_str = get_input(day)
 
     if part == 1:
+        assert solve1 is not None, 'You need to provide a function to solve part 1'
         solve = solve1(input_str)
     else:
+        assert solve2 is not None, 'You need to provide a function to solve part 2'
         solve = solve2(input_str)
 
     if example:
@@ -69,6 +73,10 @@ def aoc(
 
 
 def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = YEAR) -> None:
+    if answer is None:
+        print('No answer provided, skipping...')
+        return
+
     verdict_path = f'verdicts/{year}/{day}_{part}.json'
     if os.path.exists(verdict_path):
         with open(verdict_path) as f:
@@ -117,6 +125,12 @@ def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = 
     else:
         print('VERDICT : OK !')
         verdicts.append({'answer': answer, 'result': 'OK'})
+        if part == 1:
+            with open(f'{day}.1.py', 'r') as f:
+                code = f.read()
+            with open(f'{day}.2.py', 'w') as f:
+                f.write(code.replace('solve1', 'solve2'))
+            open_day_in_browser(day, year)
 
     os.makedirs(os.path.dirname(verdict_path), exist_ok=True)
     with open(verdict_path, 'w') as f:

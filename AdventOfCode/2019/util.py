@@ -12,6 +12,10 @@ import re  # noqa
 import os  # noqa
 
 
+def open_day_in_browser(day: int, year: int) -> None:
+    os.system(f'explorer https://adventofcode.com/{year}/day/{day}')
+
+
 class Point:
     # a general 2D point class
     def __init__(self, x: int, y: int):
@@ -67,6 +71,18 @@ class Point:
     def angle(self, other: Point) -> float:
         # so that up is 0, right is pi/2, down is pi, left is 3pi/2
         return atan2(other.y - self.y, other.x - self.x) + pi / 2
+
+    def rotate90(self, k: int) -> Point:
+        k %= 4
+        if k == 0:
+            return self
+        if k == 1:
+            return Point(-self.y, self.x)
+        if k == 2:
+            return Point(-self.x, -self.y)
+        if k == 3:
+            return Point(self.y, -self.x)
+        assert False, f'Invalid k: {k}'
 
     @staticmethod
     def parse(s: str) -> Point:
