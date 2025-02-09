@@ -16,6 +16,8 @@ Your cookie is similar to a password, >>> DO NOT SHARE/PUBLISH IT <<<
 If you intend to share your solutions, store it in an env variable or a file.
 """
 
+import json
+import os
 import sys
 import requests
 from typing import Literal, Callable
@@ -67,8 +69,28 @@ def aoc(
 
 
 def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = YEAR) -> None:
+    verdict_path = f'verdicts/{year}/{day}_{part}.json'
+    if os.path.exists(verdict_path):
+        with open(verdict_path) as f:
+            verdicts = json.load(f)
+    else:
+        verdicts = []
+
     print('You are about to submit the follwing answer:')
     print(f'>>>>>>>>>>>>>>>>> {answer}')
+
+    for verdict in verdicts:
+        if verdict['answer'] == answer:
+            print('Already submitted this answer:', verdict['result'])
+            return
+        # check for too low/high verdicts
+        if verdict['result'] == 'TOO LOW' and answer < verdict['answer']:
+            print('Result is too low, skipping...')
+            return
+        if verdict['result'] == 'TOO HIGH' and answer > verdict['answer']:
+            print('Result is too high, skipping...')
+            return
+
     input('Press enter to continue or Ctrl+C to abort.')
     data = {'level': str(part), 'answer': str(answer)}
 
@@ -81,16 +103,24 @@ def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = 
     elif 'not the right answer' in response.text:
         if 'too low' in response.text:
             print('VERDICT : WRONG (TOO LOW)')
+            verdicts.append({'answer': answer, 'result': 'TOO LOW'})
         elif 'too high' in response.text:
             print('VERDICT : WRONG (TOO HIGH)')
+            verdicts.append({'answer': answer, 'result': 'TOO HIGH'})
         else:
             print('VERDICT : WRONG (UNKNOWN)')
+            verdicts.append({'answer': answer, 'result': 'UNKNOWN'})
     elif 'seem to be solving the right level.' in response.text:
         # You will get this if you submit on a level you already solved.
         # Usually happens when you forget to switch from `PART = 1` to `PART = 2`
         print('VERDICT : ALREADY SOLVED')
     else:
         print('VERDICT : OK !')
+        verdicts.append({'answer': answer, 'result': 'OK'})
+
+    os.makedirs(os.path.dirname(verdict_path), exist_ok=True)
+    with open(verdict_path, 'w') as f:
+        json.dump(verdicts, f, indent=2)
 
 
 if __name__ == '__main__':

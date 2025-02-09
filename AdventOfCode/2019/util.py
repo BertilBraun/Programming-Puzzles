@@ -58,6 +58,16 @@ class Point:
     def cardinal_neighbours(self) -> list[Point]:
         return [self + Point(*dir) for dir in [(0, 1), (1, 0), (0, -1), (-1, 0)]]
 
+    def dist(self, other: Point) -> float:
+        return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
+
+    def manhattan(self, other: Point) -> int:
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
+    def angle(self, other: Point) -> float:
+        # so that up is 0, right is pi/2, down is pi, left is 3pi/2
+        return atan2(other.y - self.y, other.x - self.x) + pi / 2
+
     @staticmethod
     def parse(s: str) -> Point:
         first, second = s.split(',')
