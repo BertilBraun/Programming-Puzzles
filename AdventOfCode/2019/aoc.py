@@ -22,7 +22,7 @@ import sys
 import requests
 from typing import Literal, Callable
 
-from util import open_day_in_browser
+from util import open_day_in_browser, open_file_in_editor
 
 with open('cookie.txt') as f:
     AOC_COOKIE = f.read().strip()
@@ -39,18 +39,20 @@ def get_example(day: int, offset: int = 0, year: int = YEAR) -> str:
     return req.text.split('<pre><code>')[offset + 1].split('</code></pre>')[0].strip()
 
 
-assert len(sys.argv) == 2 and sys.argv[1] in ('1', '2'), 'Usage: python {{day}}.py <1|2>'
-
-
 def aoc(
     day: int,
+    part: Literal[1, 2] | None = None,
     solve1: Callable[[str], str | int | None] | None = None,
     solve2: Callable[[str], str | int | None] | None = None,
     example: bool = False,
     example_input: str | None = None,
     year: int = YEAR,
 ) -> None:
-    part: Literal[1, 2] = int(sys.argv[1])  # type: ignore
+    if part is None:
+        assert len(sys.argv) == 2 and sys.argv[1] in ('1', '2'), 'Usage: python {{day}}.py <1|2>'
+
+        part = int(sys.argv[1])  # type: ignore
+    assert part in (1, 2), 'Part must be 1 or 2'
 
     if example:
         if example_input is None:
@@ -98,6 +100,9 @@ def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = 
         if verdict['result'] == 'TOO HIGH' and answer > verdict['answer']:
             print('Result is too high, skipping...')
             return
+        if verdict['result'] == 'OK' and answer != verdict['answer']:
+            print(f'Already solved this part with a different answer: {verdict["answer"]}')
+            return
 
     input('Press enter to continue or Ctrl+C to abort.')
     data = {'level': str(part), 'answer': str(answer)}
@@ -126,10 +131,9 @@ def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = 
         print('VERDICT : OK !')
         verdicts.append({'answer': answer, 'result': 'OK'})
         if part == 1:
-            with open(f'{day}.1.py', 'r') as f:
-                code = f.read()
-            with open(f'{day}.2.py', 'w') as f:
-                f.write(code.replace('solve1', 'solve2'))
+            with open(f'{day}.1.py', 'r') as in_file, open(f'{day}.2.py', 'w') as out_file:
+                out_file.write(in_file.read().replace('solve1', 'solve2').replace('part=1', 'part=2'))
+            open_file_in_editor(f'{day}.2.py')
             open_day_in_browser(day, year)
 
     os.makedirs(os.path.dirname(verdict_path), exist_ok=True)

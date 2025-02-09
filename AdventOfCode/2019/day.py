@@ -1,7 +1,7 @@
 import os
 import sys
 
-from util import open_day_in_browser
+from util import open_day_in_browser, open_file_in_editor
 
 assert len(sys.argv) == 2, 'Usage: python day.py <day_number>'
 
@@ -26,18 +26,17 @@ from intcode import *
 
 
 def solve1(input: str) -> str | int | None:
-    # Your code for part 1 here
     pass
 
 
 if __name__ == '__main__':
-    aoc(day={day}, solve1=solve1, example=False)
+    aoc(day={day}, part=1, solve1=solve1, example=False)
 """
     )
 print(f'Created {file_day}.1.py')
 
 # open the file in the editor
-os.system(f'code {file_day}.1.py')
+open_file_in_editor(f'{file_day}.1.py')
 
 # open the day in the browser
 year = int(os.path.basename(os.getcwd()))

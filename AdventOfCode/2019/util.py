@@ -5,6 +5,7 @@ from collections import *  # noqa
 from itertools import *  # noqa
 from heapq import *  # noqa
 from math import *  # noqa
+import numpy as np
 from tqdm import tqdm, trange  # noqa
 from functools import *  # noqa
 from random import *  # noqa
@@ -14,6 +15,10 @@ import os  # noqa
 
 def open_day_in_browser(day: int, year: int) -> None:
     os.system(f'explorer https://adventofcode.com/{year}/day/{day}')
+
+
+def open_file_in_editor(file: str) -> None:
+    os.system(f'code {file}')
 
 
 class Point:
@@ -84,6 +89,9 @@ class Point:
             return Point(self.y, -self.x)
         assert False, f'Invalid k: {k}'
 
+    def to_numpy(self) -> np.ndarray:
+        return np.array([self.x, self.y])
+
     @staticmethod
     def parse(s: str) -> Point:
         first, second = s.split(',')
@@ -91,6 +99,69 @@ class Point:
         first = ''.join(c for c in first if c.isdigit() or c == '-')
         second = ''.join(c for c in second if c.isdigit() or c == '-')
         return Point(int(first), int(second))
+
+
+class Point3:
+    def __init__(self, x: int, y: int, z: int):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __add__(self, other: Point3 | tuple[int, int, int]) -> Point3:
+        if isinstance(other, tuple):
+            other = Point3(*other)
+        return Point3(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __sub__(self, other: Point3 | tuple[int, int, int]) -> Point3:
+        if isinstance(other, tuple):
+            other = Point3(*other)
+        return Point3(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def __eq__(self, other: Point3 | tuple[int, int, int]) -> bool:
+        if isinstance(other, tuple):
+            other = Point3(*other)
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __lt__(self, other: Point3) -> bool:
+        return (self.x, self.y, self.z) < (other.x, other.y, other.z)
+
+    def __hash__(self) -> int:
+        return hash((self.x, self.y, self.z))
+
+    def __repr__(self) -> str:
+        return f'Point3({self.x}, {self.y}, {self.z})'
+
+    def __iter__(self):
+        yield self.x
+        yield self.y
+        yield self.z
+
+    def __getitem__(self, i: int) -> int:
+        return [self.x, self.y, self.z][i]
+
+    def copy(self) -> Point3:
+        return Point3(self.x, self.y, self.z)
+
+    def oob(self, N: int, M: int, L: int) -> bool:
+        return self.x < 0 or self.x >= N or self.y < 0 or self.y >= M or self.z < 0 or self.z >= L
+
+    def in_bounds(self, N: int, M: int, L: int) -> bool:
+        return not self.oob(N, M, L)
+
+    def sign(self) -> Point3:
+        x_sign = 0 if self.x == 0 else 1 if self.x > 0 else -1
+        y_sign = 0 if self.y == 0 else 1 if self.y > 0 else -1
+        z_sign = 0 if self.z == 0 else 1 if self.z > 0 else -1
+        return Point3(x_sign, y_sign, z_sign)
+
+    def to_numpy(self) -> np.ndarray:
+        return np.array([self.x, self.y, self.z])
+
+    @staticmethod
+    def parse(s: str) -> Point3:
+        # parse from <x=-8, y=-10, z=0>
+        x, y, z = map(int, re.findall(r'-?\d+', s))
+        return Point3(x, y, z)
 
 
 def dijkstra(map: list[list[int]], start: Point, end: Point) -> list[list[int]]:
