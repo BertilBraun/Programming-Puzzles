@@ -127,6 +127,16 @@ class Computer:
         )
 
 
+def print_output_as_ascii(outputs: list[int]):
+    """Prints the output as ASCII characters"""
+    for i in range(len(outputs)):
+        if outputs[i] == 10:
+            print()
+        else:
+            print(chr(outputs[i]), end='')
+    print()
+
+
 def run_intcode(prog: list[int], inputs: list[int]) -> list[int]:
     def val(i: int, mode: int) -> int:
         return prog[i] if mode else prog[prog[i]]

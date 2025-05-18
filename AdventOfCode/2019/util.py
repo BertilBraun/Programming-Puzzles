@@ -40,6 +40,9 @@ class Point:
     def __mul__(self, factor: int) -> Point:
         return Point(self.x * factor, self.y * factor)
 
+    def __neg__(self) -> Point:
+        return Point(-self.x, -self.y)
+
     def __eq__(self, other: Point | tuple[int, int]) -> bool:
         if isinstance(other, tuple):
             other = Point(*other)
