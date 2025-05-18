@@ -209,3 +209,58 @@ def calculate_overlap(A: Iterable, B: Iterable) -> int:
         else:
             break
     return equal_count
+
+
+### Graph functions
+
+
+def graph_from_grid(grid: list[list[str]]) -> dict[Point, list[Point]]:
+    graph: dict[Point, list[Point]] = {}
+    for y in range(len(grid)):
+        for x in range(len(grid[y])):
+            if grid[y][x] == '#':
+                continue
+            point = Point(x, y)
+            graph[point] = []
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                new_point = Point(x + dx, y + dy)
+                if 0 <= new_point.x < len(grid[0]) and 0 <= new_point.y < len(grid):
+                    if grid[new_point.y][new_point.x] != '#':
+                        graph[point].append(new_point)
+    return graph
+
+
+def reduce_graph(grid: list[list[str]], graph: dict[Point, list[Point]]) -> dict[Point, list[tuple[Point, int]]]:
+    # Remove nodes that are not needed
+    # For each node, if it has only 2 neighbors, aka a line, remove it
+    reduced_graph = {point: [(neighbor, 1) for neighbor in neighbors] for point, neighbors in graph.items()}
+    while True:
+        for point, neighbors in reduced_graph.items():
+            if len(neighbors) == 2 and grid[point.y][point.x] == '.':
+                nl, dl = neighbors[0]
+                nr, dr = neighbors[1]
+                # remove the point from the left neighbor
+                reduced_graph[nl] = [el for el in reduced_graph[nl] if el[0] != point]
+                # remove the point from the right neighbor
+                reduced_graph[nr] = [el for el in reduced_graph[nr] if el[0] != point]
+                reduced_graph[nl].append((nr, dl + dr))
+                reduced_graph[nr].append((nl, dl + dr))
+                del reduced_graph[point]
+                break
+        else:
+            break
+
+    return reduced_graph
+
+
+def print_graph(graph: dict[Point, list[tuple[Point, int]]]):
+    # print the graph to dot format and render it with graphviz
+    with open('graph.dot', 'w') as f:
+        f.write('graph G {\n')
+        for point, neighbors in graph.items():
+            for neighbor, dist in neighbors:
+                f.write(f'  {point.x}{point.y} -- {neighbor.x}{neighbor.y} [label="{dist}"];\n')
+        f.write('}\n')
+
+    os.system('dot -Tpng graph.dot -o graph.png')
+    os.system('open graph.png')
