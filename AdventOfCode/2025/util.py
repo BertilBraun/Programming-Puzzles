@@ -43,9 +43,11 @@ class Point:
     def __neg__(self) -> Point:
         return Point(-self.x, -self.y)
 
-    def __eq__(self, other: Point | tuple[int, int]) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, tuple):
             other = Point(*other)
+        if not isinstance(other, Point):
+            return False
         return self.x == other.x and self.y == other.y
 
     def __lt__(self, other: Point) -> bool:
@@ -120,9 +122,11 @@ class Point3:
             other = Point3(*other)
         return Point3(self.x - other.x, self.y - other.y, self.z - other.z)
 
-    def __eq__(self, other: Point3 | tuple[int, int, int]) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, tuple):
             other = Point3(*other)
+        if not isinstance(other, Point3):
+            return False
         return self.x == other.x and self.y == other.y and self.z == other.z
 
     def __lt__(self, other: Point3) -> bool:
@@ -156,6 +160,9 @@ class Point3:
         y_sign = 0 if self.y == 0 else 1 if self.y > 0 else -1
         z_sign = 0 if self.z == 0 else 1 if self.z > 0 else -1
         return Point3(x_sign, y_sign, z_sign)
+
+    def dist(self, other: Point3) -> float:
+        return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     def to_numpy(self) -> np.ndarray:
         return np.array([self.x, self.y, self.z])
