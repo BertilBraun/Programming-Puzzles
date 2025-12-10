@@ -38,8 +38,8 @@ def solve2(input: str) -> str | int | None:
 
         while solver.check() == sat:
             model = solver.model()
-            res = sum(model[multipliers[i]].as_long() for i in range(len(machine.buttons)))
-            solver.add(Sum(*[multipliers[i] for i in range(len(machine.buttons))]) < res)
+            res = sum(model.eval(multiplier).as_long() for multiplier in multipliers)
+            solver.add(Sum(*multipliers) < res)
 
         return res
 
