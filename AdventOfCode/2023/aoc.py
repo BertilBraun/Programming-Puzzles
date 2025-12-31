@@ -29,9 +29,42 @@ with open('cookie.txt') as f:
 YEAR = 2023
 
 
+INPUTS_DIR = 'inputs'
+
+
+def _input_path(day: int, year: int = YEAR) -> str:
+    # Year is intentionally not part of the filename because this repo is already scoped to a single year.
+    return os.path.join(INPUTS_DIR, f'{day:02d}.txt')
+
+
+def download_input(day: int, year: int = YEAR) -> str:
+    req = requests.get(
+        f'https://adventofcode.com/{year}/day/{day}/input',
+        headers={'cookie': 'session=' + AOC_COOKIE},
+    )
+    req.raise_for_status()
+    return req.text
+
+
+def ensure_input_file(day: int, year: int = YEAR, force: bool = False) -> str:
+    path = _input_path(day, year)
+    if not force and os.path.exists(path):
+        return path
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    input_text = download_input(day, year)
+    with open(path, 'w', encoding='utf-8', newline='') as f:
+        f.write(input_text)
+    return path
+
+
 def get_input(day: int, year: int = YEAR) -> str:
-    req = requests.get(f'https://adventofcode.com/{year}/day/{day}/input', headers={'cookie': 'session=' + AOC_COOKIE})
-    return req.text.strip()
+    path = _input_path(day, year)
+    if not os.path.exists(path):
+        ensure_input_file(day, year)
+
+    with open(path, encoding='utf-8') as f:
+        return f.read().strip()
 
 
 def get_example(day: int, offset: int = 0, year: int = YEAR) -> str:
@@ -59,7 +92,7 @@ def aoc(
             example_input = get_example(day)
         input_str = example_input
     else:
-        input_str = get_input(day)
+        input_str = get_input(day, year)
 
     if part == 1:
         assert solve1 is not None, 'You need to provide a function to solve part 1'
