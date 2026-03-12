@@ -6,20 +6,26 @@ def solve2(input: str) -> str | int | None:
     players = [(line.split(' ')[0], int(line.split(' ')[1])) for line in input.splitlines()]
 
     def typeOfHand(hand: str) -> int:
-        counter = Counter(hand)
+        counter = Counter(hand.replace('J', ''))
         counts = list(sorted(counter.values(), reverse=True))
+        counts += [0, 0]
 
-        c0, c1, j = counts[0], counts[1] if len(counts) > 1 else 0, counter['J']
+        c0, c1 = counts[0], counts[1]
+        j = hand.count('J')
 
-        if c0 + j >= 5:
+        assert sum(counts) + j == 5
+
+        if c0 + j == 5:
             return 5
-        elif c0 + j >= 4:
+        elif c0 + j == 4:
             return 4
-        elif (c0 == 3 and c1 == 2) or (c0 == 2 and j >= 1 and c1 == 2):
+        elif c0 == 3 and c1 == 2:
+            return 3
+        elif c0 == 2 and c1 == 2 and j == 1:
             return 3
         elif c0 + j == 3:
             return 2
-        elif c0 == 2 and c1 + j >= 2:
+        elif c0 == 2 and c1 == 2:
             return 1
         elif c0 + j == 2:
             return 0
