@@ -160,7 +160,7 @@ def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = 
         # You will get this if you submit on a level you already solved.
         # Usually happens when you forget to switch from `PART = 1` to `PART = 2`
         print('VERDICT : ALREADY SOLVED')
-    else:
+    elif "That's the right answer!" in response.text:
         print('VERDICT : OK !')
         verdicts.append({'answer': answer, 'result': 'OK'})
         if part == 1:
@@ -168,6 +168,8 @@ def submit(day: int, part: Literal[1, 2], answer: str | int | None, year: int = 
                 out_file.write(in_file.read().replace('solve1', 'solve2').replace('part=1', 'part=2'))
             open_file_in_editor(f'{day:02d}.2.py')
             open_day_in_browser(day, year)
+    else:
+        print('Weird response... What is this response:', response.text)
 
     os.makedirs(os.path.dirname(verdict_path), exist_ok=True)
     with open(verdict_path, 'w') as f:
