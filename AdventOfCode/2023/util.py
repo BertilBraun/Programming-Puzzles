@@ -18,7 +18,7 @@ def open_day_in_browser(day: int, year: int) -> None:
 
 
 def open_file_in_editor(file: str) -> None:
-    os.system(f'cursor {file}')
+    os.system(f'code {file}')
 
 
 class Point:
@@ -194,6 +194,10 @@ def dijkstra(map: list[list[int]], start: Point, end: Point) -> list[list[int]]:
 
 def parse_grid(input: str) -> list[list[str]]:
     return [list(row.strip()) for row in input.split('\n')]
+
+
+def parse_int_grid(input: str) -> list[list[int]]:
+    return [[int(el) for el in row] for row in parse_grid(input)]
 
 
 def parse_ints(input: str) -> list[int]:
