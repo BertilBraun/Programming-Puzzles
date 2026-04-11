@@ -174,6 +174,68 @@ class Point3:
         return Point3(x, y, z)
 
 
+class Point3f:
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __add__(self, other: Point3f | tuple[float, float, float]) -> Point3f:
+        if isinstance(other, tuple):
+            other = Point3f(*other)
+        return Point3f(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __sub__(self, other: Point3f | tuple[int, int, int]) -> Point3f:
+        if isinstance(other, tuple):
+            other = Point3f(*other)
+        return Point3f(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, tuple):
+            other = Point3f(*other)
+        if not isinstance(other, Point3f):
+            return False
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __mul__(self, other: float):
+        return Point3f(self.x * other, self.y * other, self.z * other)
+
+    def __lt__(self, other: Point3f) -> bool:
+        return (self.x, self.y, self.z) < (other.x, other.y, other.z)
+
+    def __hash__(self) -> int:
+        return hash((self.x, self.y, self.z))
+
+    def __repr__(self) -> str:
+        return f'Point3f({self.x}, {self.y}, {self.z})'
+
+    def __iter__(self):
+        yield self.x
+        yield self.y
+        yield self.z
+
+    def __getitem__(self, i: int) -> float:
+        return [self.x, self.y, self.z][i]
+
+    def copy(self) -> Point3f:
+        return Point3f(self.x, self.y, self.z)
+
+    def oob(self, N: int, M: int, L: int) -> bool:
+        return self.x < 0 or self.x >= N or self.y < 0 or self.y >= M or self.z < 0 or self.z >= L
+
+    def in_bounds(self, N: int, M: int, L: int) -> bool:
+        return not self.oob(N, M, L)
+
+    def dist(self, other: Point3f) -> float:
+        return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
+
+    @staticmethod
+    def parse(s: str) -> Point3f:
+        # parse from <x=-8, y=-10, z=0>
+        x, y, z = map(int, re.findall(r'-?\d+', s))
+        return Point3f(x, y, z)
+
+
 def dijkstra(map: list[list[int]], start: Point, end: Point) -> list[list[int]]:
     N, M = len(map), len(map[0])
     q = [(0, start)]
